@@ -217,6 +217,13 @@ def main():
         sys.exit(1)
 
     shutil.copy(plugin_src, plugin_dir / "__init__.py")
+
+    # Copy SKILL.md so the agent knows when and how to use rlm_complete
+    skill_src = script_dir / "SKILL.md"
+    if skill_src.exists():
+        shutil.copy(skill_src, plugin_dir / "SKILL.md")
+        print(green("✓") + " Skill installed (agent instructions)")
+
     print(green("✓") + " Plugin installed")
 
     # ─── Restart Hermes ──────────────────────────────────────────────────────

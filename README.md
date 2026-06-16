@@ -4,8 +4,9 @@
 [![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey)](.)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 [![Hermes](https://img.shields.io/badge/Hermes-Agent-orange)](https://hermes-agent.nousresearch.com)
+[![skills.sh](https://img.shields.io/badge/skills.sh-listed-6366f1)](https://www.skills.sh)
 
-**Recursive Language Model** — deep recursive analysis instead of shallow RAG search.
+**Recursive Language Model** — deep recursive analysis instead of shallow RAG search. Works as a Hermes plugin AND an Agent Skill (skills.sh compatible).
 
 ---
 
@@ -192,6 +193,28 @@ The plugin registers a `rlm_complete` tool in Hermes. When called:
 4. Returns a synthesized answer
 
 **Security:** prompt is passed via stdin as JSON — safe from injection. No string escaping into Python code.
+
+---
+
+## Agent Skill (skills.sh)
+
+This repo is also an **Agent Skill** — compatible with [skills.sh](https://www.skills.sh) and any agent that follows the [Agent Skills spec](https://agentskills.io/specification) (Claude Code, Cursor, Codex, GitHub Copilot, Windsurf, Gemini, and others).
+
+The `SKILL.md` file teaches the agent **when and how** to use `rlm_complete`:
+
+- When to call it (large docs, multi-file comparison, completeness-critical tasks)
+- When NOT to call it (short files, simple facts, mechanical tasks)
+- How to write effective prompts (structure, examples, anti-patterns)
+- Parameter tuning (iterations, timeout, model override)
+- Common pitfalls and verification checklist
+
+**Install as a skill:**
+
+```bash
+npx skills add defdis/rlm-hermes-plugin
+```
+
+The skill appears automatically on the [skills.sh leaderboard](https://www.skills.sh) through anonymous installation telemetry.
 
 ---
 
