@@ -1,0 +1,6 @@
+name: rlm
+version: 1.0.0
+description: Recursive Language Model — deep recursive analysis instead of shallow RAG search. Registers rlm_complete tool.
+requires_env:
+  - RLM_OPENAI_BASE_URL
+  - RLM_OPENAI_API_KEY

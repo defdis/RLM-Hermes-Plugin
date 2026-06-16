@@ -60,11 +60,16 @@ def main():
 
     # 2. Plugin exists
     plugin = hermes_home / "plugins" / "rlm" / "__init__.py"
+    manifest = hermes_home / "plugins" / "rlm" / "plugin.yaml"
     if not plugin.exists():
-        print(red("FAIL") + " Plugin not installed")
+        print(red("FAIL") + " Plugin __init__.py not installed")
         errors += 1
     else:
-        print(green("PASS") + " Plugin installed")
+        print(green("PASS") + " Plugin __init__.py installed")
+    if not manifest.exists():
+        print(yellow("WARN") + " plugin.yaml not found (optional)")
+    else:
+        print(green("PASS") + " Plugin manifest installed")
 
     # 3. RLM venv exists
     rlm_python = find_rlm_python(hermes_home)

@@ -170,7 +170,8 @@ RLM_MODEL=gpt-4o
 
 ```bash
 mkdir -p ~/.hermes/plugins/rlm
-cp plugin/__init__.py ~/.hermes/plugins/rlm/__init__.py
+cp __init__.py ~/.hermes/plugins/rlm/__init__.py
+cp plugin.yaml ~/.hermes/plugins/rlm/plugin.yaml
 ```
 
 ### 4. Restart Hermes

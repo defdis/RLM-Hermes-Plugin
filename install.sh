@@ -115,11 +115,17 @@ PLUGIN_DIR="$HERMES_HOME/plugins/rlm"
 mkdir -p "$PLUGIN_DIR"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [ -f "$SCRIPT_DIR/plugin/__init__.py" ]; then
-    cp "$SCRIPT_DIR/plugin/__init__.py" "$PLUGIN_DIR/__init__.py"
+if [ -f "$SCRIPT_DIR/__init__.py" ]; then
+    cp "$SCRIPT_DIR/__init__.py" "$PLUGIN_DIR/__init__.py"
 else
-    echo -e "${RED}ERROR: plugin/__init__.py not found. Are you running from the repo root?${NC}"
+    echo -e "${RED}ERROR: __init__.py not found. Are you running from the repo root?${NC}"
     exit 1
+fi
+
+# Copy plugin.yaml manifest
+if [ -f "$SCRIPT_DIR/plugin.yaml" ]; then
+    cp "$SCRIPT_DIR/plugin.yaml" "$PLUGIN_DIR/plugin.yaml"
+    echo -e "${GREEN}✓${NC} Plugin manifest installed"
 fi
 
 # Copy SKILL.md so the agent knows when and how to use rlm_complete

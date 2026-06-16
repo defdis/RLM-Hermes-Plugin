@@ -209,14 +209,19 @@ def main():
     plugin_dir.mkdir(parents=True, exist_ok=True)
 
     script_dir = Path(__file__).parent.resolve()
-    plugin_src = script_dir / "plugin" / "__init__.py"
+    init_src = script_dir / "__init__.py"
+    yaml_src = script_dir / "plugin.yaml"
 
-    if not plugin_src.exists():
-        print(red("ERROR: plugin/__init__.py not found."))
+    if not init_src.exists():
+        print(red("ERROR: __init__.py not found."))
         print("Run this script from the repo root directory.")
         sys.exit(1)
 
-    shutil.copy(plugin_src, plugin_dir / "__init__.py")
+    shutil.copy(init_src, plugin_dir / "__init__.py")
+
+    if yaml_src.exists():
+        shutil.copy(yaml_src, plugin_dir / "plugin.yaml")
+        print(green("✓") + " Plugin manifest installed")
 
     # Copy SKILL.md so the agent knows when and how to use rlm_complete
     skill_src = script_dir / "skills" / "rlm-deep-analysis" / "SKILL.md"
