@@ -200,13 +200,7 @@ The plugin registers a `rlm_complete` tool in Hermes. When called:
 
 This repo is also an **Agent Skill** — compatible with [skills.sh](https://www.skills.sh) and any agent that follows the [Agent Skills spec](https://agentskills.io/specification) (Claude Code, Cursor, Codex, GitHub Copilot, Windsurf, Gemini, and others).
 
-The `SKILL.md` file teaches the agent **when and how** to use `rlm_complete`:
-
-- When to call it (large docs, multi-file comparison, completeness-critical tasks)
-- When NOT to call it (short files, simple facts, mechanical tasks)
-- How to write effective prompts (structure, examples, anti-patterns)
-- Parameter tuning (iterations, timeout, model override)
-- Common pitfalls and verification checklist
+The skill lives at `skills/rlm-deep-analysis/SKILL.md` — the standard layout for skills.sh compatibility.
 
 **Install as a skill:**
 

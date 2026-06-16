@@ -123,8 +123,8 @@ else
 fi
 
 # Copy SKILL.md so the agent knows when and how to use rlm_complete
-if [ -f "$SCRIPT_DIR/SKILL.md" ]; then
-    cp "$SCRIPT_DIR/SKILL.md" "$PLUGIN_DIR/SKILL.md"
+if [ -f "$SCRIPT_DIR/skills/rlm-deep-analysis/SKILL.md" ]; then
+    cp "$SCRIPT_DIR/skills/rlm-deep-analysis/SKILL.md" "$PLUGIN_DIR/SKILL.md"
     echo -e "${GREEN}✓${NC} Skill installed (agent instructions)"
 fi
 
