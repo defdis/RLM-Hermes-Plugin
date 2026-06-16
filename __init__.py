@@ -160,7 +160,7 @@ def _call_rlm(
         if not proxy_url:
             return {"success": False, "error": "Ollama proxy failed to start. Check RLM_OLLAMA_URL and that proxy.py is installed."}
         base_url = proxy_url
-        api_key = "ollama"  # Ollama doesn't require auth
+        api_key = os.environ.get("OLLAMA_API_KEY", "ollama")
     else:
         base_url = os.environ.get("RLM_OPENAI_BASE_URL", "")
         api_key = os.environ.get("RLM_OPENAI_API_KEY", "")

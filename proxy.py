@@ -40,6 +40,10 @@ class ProxyHandler(BaseHTTPRequestHandler):
         url = f"{OLLAMA_URL}{path}"
         req = urllib.request.Request(url, method="POST" if payload else "GET")
         req.add_header("Content-Type", "application/json")
+        # Pass through Authorization header if present (for Ollama Cloud auth)
+        auth = self.headers.get("Authorization", "")
+        if auth:
+            req.add_header("Authorization", auth)
         data = json.dumps(payload).encode() if payload else None
         try:
             with urllib.request.urlopen(req, data=data, timeout=300) as resp:
