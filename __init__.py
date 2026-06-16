@@ -101,9 +101,14 @@ def _ensure_proxy() -> str | None:
     if _proxy_process is not None and _proxy_process.poll() is None:
         return PROXY_URL
 
+    ollama_url = os.environ.get("RLM_OLLAMA_URL") or os.environ.get("OLLAMA_URL", "http://localhost:11434")
+    ollama_api_key = os.environ.get("OLLAMA_API_KEY", "")
+
     # Check if proxy is already alive on the port
     try:
         req = urllib.request.Request(f"http://127.0.0.1:{PROXY_PORT}/health")
+        if ollama_api_key:
+            req.add_header("Authorization", f"Bearer {ollama_api_key}")
         with urllib.request.urlopen(req, timeout=2) as resp:
             if resp.status == 200:
                 return PROXY_URL
@@ -118,9 +123,6 @@ def _ensure_proxy() -> str | None:
     python = _find_python()
     if not python:
         return None
-
-    ollama_url = os.environ.get("RLM_OLLAMA_URL") or os.environ.get("OLLAMA_URL", "http://localhost:11434")
-    ollama_api_key = os.environ.get("OLLAMA_API_KEY", "")
 
     # Start proxy as background subprocess
     try:
@@ -143,8 +145,13 @@ def _ensure_proxy() -> str | None:
                         return PROXY_URL
             except Exception:
                 continue
-        # Timeout — kill and return None
-        _proxy_process.kill()
+        # Timeout — terminate gracefully
+        _proxy_process.terminate()
+        try:
+            _proxy_process.wait(timeout=3)
+        except subprocess.TimeoutExpired:
+            _proxy_process.kill()
+            _proxy_process.wait()
         _proxy_process = None
         return None
     except Exception:

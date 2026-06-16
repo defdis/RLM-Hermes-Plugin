@@ -18,16 +18,15 @@ import sys
 import urllib.request
 import urllib.error
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from typing import Optional, Tuple, Dict, Any
-
-
-OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
 
 
 class ProxyHandler(BaseHTTPRequestHandler):
     """Translate OpenAI-format requests to Ollama native API."""
 
-    def _send_json(self, data: Dict[str, Any], status: int = 200):
+    # Set by main() before serve_forever — per-instance, not global
+    ollama_url: str = "http://localhost:11434"
+
+    def _send_json(self, data: dict, status: int = 200):
         body = json.dumps(data, ensure_ascii=False).encode()
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
@@ -35,15 +34,17 @@ class ProxyHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def _forward(self, path: str, payload: Optional[Dict[str, Any]] = None) -> Tuple[int, Dict[str, Any]]:
+    def _forward(self, path: str, payload: dict | None = None) -> tuple[int, dict]:
         """Forward a request to Ollama and return (status, json_body)."""
-        url = f"{OLLAMA_URL}{path}"
+        url = f"{self.ollama_url}{path}"
         req = urllib.request.Request(url, method="POST" if payload else "GET")
         req.add_header("Content-Type", "application/json")
-        # Pass through Authorization header if present (for Ollama Cloud auth)
+
+        # Pass through Authorization from incoming request
         auth = self.headers.get("Authorization", "")
         if auth:
             req.add_header("Authorization", auth)
+
         data = json.dumps(payload).encode() if payload else None
         try:
             with urllib.request.urlopen(req, data=data, timeout=300) as resp:
@@ -128,15 +129,15 @@ class ProxyHandler(BaseHTTPRequestHandler):
 def main():
     parser = argparse.ArgumentParser(description="OpenAI → Ollama API proxy")
     parser.add_argument("--port", type=int, default=11435, help="Proxy port (default: 11435)")
-    parser.add_argument("--ollama-url", default=OLLAMA_URL, help="Ollama base URL")
+    parser.add_argument("--ollama-url", default="http://localhost:11434", help="Ollama base URL")
     args = parser.parse_args()
 
-    global OLLAMA_URL
-    OLLAMA_URL = args.ollama_url.rstrip("/")
+    # Set per-instance ollama_url on the handler class
+    ProxyHandler.ollama_url = args.ollama_url.rstrip("/")
 
     server = HTTPServer(("127.0.0.1", args.port), ProxyHandler)
     print(f"[proxy] Listening on http://127.0.0.1:{args.port}")
-    print(f"[proxy] Forwarding to {OLLAMA_URL}")
+    print(f"[proxy] Forwarding to {ProxyHandler.ollama_url}")
     print(f"[proxy] Use RLM_OPENAI_BASE_URL=http://127.0.0.1:{args.port}/v1", file=sys.stderr)
     try:
         server.serve_forever()
