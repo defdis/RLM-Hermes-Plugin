@@ -126,13 +126,35 @@ If it responds meaningfully — it works.
 
 ## Supported API Providers
 
-| Provider | Base URL |
-|---|---|
-| OpenAI | `https://api.openai.com/v1` |
-| OpenRouter | `https://openrouter.ai/api/v1` |
-| Ollama (local) | `http://localhost:11434/v1` |
-| vLLM | `http://your-server:8000/v1` |
-| Any OpenAI-compatible | your endpoint |
+| Provider | Base URL | Notes |
+|---|---|---|
+| OpenAI | `https://api.openai.com/v1` | Native |
+| OpenRouter | `https://openrouter.ai/api/v1` | Native |
+| vLLM | `http://your-server:8000/v1` | Native |
+| **Ollama** (local/cloud) | `http://localhost:11434` | Via built-in proxy |
+| Any OpenAI-compatible | your endpoint | Native |
+
+### Ollama via Built-in Proxy
+
+RLM doesn't support Ollama natively (Ollama uses `/api/chat`, not `/v1/chat/completions`). The plugin includes `proxy.py` — a zero-dependency OpenAI→Ollama translator that starts automatically.
+
+**Setup:**
+
+```bash
+# In ~/.hermes/.env:
+RLM_BACKEND=ollama
+RLM_OLLAMA_URL=http://localhost:11434          # or your Ollama Cloud URL
+RLM_MODEL=qwen3.5:122b                          # any model in ollama list
+# No API key needed
+```
+
+The proxy starts on first `rlm_complete` call (port 11435, localhost). No manual steps.
+
+**Manual proxy (optional):**
+```bash
+python3 proxy.py --port 11435 --ollama-url http://your-ollama:11434
+# Then set RLM_OPENAI_BASE_URL=http://127.0.0.1:11435/v1
+```
 
 ---
 

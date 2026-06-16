@@ -4,6 +4,7 @@ RLM Plugin for Hermes — Recursive Language Model.
 Provides rlm_complete: recursive task solving where the model
 reads files, explores sub-questions, and cross-references on its own.
 
+Supports: OpenAI, OpenRouter, vLLM (native), and Ollama (via built-in proxy).
 Cross-platform: Linux, macOS, Windows.
 """
 
@@ -11,6 +12,35 @@ import json
 import os
 import subprocess
 import sys
+import time
+import urllib.request
+from pathlib import Path
+
+
+# ─── Proxy management ────────────────────────────────────────────────────────
+
+_proxy_process = None
+PROXY_PORT = 11435
+PROXY_URL = f"http://127.0.0.1:{PROXY_PORT}/v1"
+
+
+def _find_python() -> str | None:
+    """Find any Python 3.11+ on the system."""
+    import shutil
+    for name in ["python3.12", "python3.11", "python3.13", "python3", "python"]:
+        exe = shutil.which(name)
+        if exe:
+            try:
+                ver = subprocess.check_output(
+                    [exe, "-c", "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"],
+                    text=True, stderr=subprocess.DEVNULL,
+                ).strip()
+                major, minor = map(int, ver.split("."))
+                if major >= 3 and minor >= 11:
+                    return exe
+            except Exception:
+                continue
+    return None
 
 
 def _find_rlm_python() -> str | None:
@@ -27,6 +57,91 @@ def _find_rlm_python() -> str | None:
     return None
 
 
+def _find_proxy_script() -> str | None:
+    """Find proxy.py in the plugin directory."""
+    hermes_home = os.environ.get("HERMES_HOME", os.path.expanduser("~/.hermes"))
+    candidates = [
+        os.path.join(hermes_home, "plugins", "rlm", "proxy.py"),
+        os.path.join(hermes_home, "rlm", "proxy.py"),
+    ]
+    for c in candidates:
+        if os.path.isfile(c):
+            return c
+    return None
+
+
+def _is_ollama_backend() -> bool:
+    """Detect if the user wants Ollama backend."""
+    backend = os.environ.get("RLM_BACKEND", "").lower()
+    if backend == "ollama":
+        return True
+    # Also detect if base_url looks like Ollama (port 11434, /api/chat pattern)
+    base_url = os.environ.get("RLM_OPENAI_BASE_URL", "")
+    if ":11434" in base_url and "/v1" not in base_url:
+        return True
+    if os.environ.get("RLM_OLLAMA_URL"):
+        return True
+    return False
+
+
+def _ensure_proxy() -> str | None:
+    """Start the OpenAI→Ollama proxy if needed. Returns proxy base URL or None on failure."""
+    global _proxy_process
+
+    if not _is_ollama_backend():
+        return None  # No proxy needed
+
+    # Already running?
+    if _proxy_process is not None and _proxy_process.poll() is None:
+        return PROXY_URL
+
+    # Check if proxy is already alive on the port
+    try:
+        req = urllib.request.Request(f"http://127.0.0.1:{PROXY_PORT}/health")
+        with urllib.request.urlopen(req, timeout=2) as resp:
+            if resp.status == 200:
+                return PROXY_URL
+    except Exception:
+        pass
+
+    # Find proxy script and python
+    proxy_script = _find_proxy_script()
+    if not proxy_script:
+        return None
+
+    python = _find_python()
+    if not python:
+        return None
+
+    ollama_url = os.environ.get("RLM_OLLAMA_URL", "http://localhost:11434")
+
+    # Start proxy as background subprocess
+    try:
+        _proxy_process = subprocess.Popen(
+            [python, proxy_script, "--port", str(PROXY_PORT), "--ollama-url", ollama_url],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        # Wait for proxy to be ready
+        for _ in range(30):  # 3 seconds max
+            time.sleep(0.1)
+            try:
+                req = urllib.request.Request(f"http://127.0.0.1:{PROXY_PORT}/health")
+                with urllib.request.urlopen(req, timeout=1) as resp:
+                    if resp.status == 200:
+                        return PROXY_URL
+            except Exception:
+                continue
+        # Timeout — kill and return None
+        _proxy_process.kill()
+        _proxy_process = None
+        return None
+    except Exception:
+        return None
+
+
+# ─── RLM call ────────────────────────────────────────────────────────────────
+
 def _call_rlm(
     prompt: str,
     root_prompt: str | None = None,
@@ -39,10 +154,18 @@ def _call_rlm(
     if not rlm_python:
         return {"success": False, "error": "RLM venv not found. Run install.py first."}
 
-    base_url = os.environ.get("RLM_OPENAI_BASE_URL", "")
-    api_key = os.environ.get("RLM_OPENAI_API_KEY", "")
-    if not base_url or not api_key:
-        return {"success": False, "error": "RLM_OPENAI_BASE_URL and RLM_OPENAI_API_KEY must be set in ~/.hermes/.env"}
+    # Determine base_url: proxy for Ollama, direct for OpenAI-compatible
+    if _is_ollama_backend():
+        proxy_url = _ensure_proxy()
+        if not proxy_url:
+            return {"success": False, "error": "Ollama proxy failed to start. Check RLM_OLLAMA_URL and that proxy.py is installed."}
+        base_url = proxy_url
+        api_key = "ollama"  # Ollama doesn't require auth
+    else:
+        base_url = os.environ.get("RLM_OPENAI_BASE_URL", "")
+        api_key = os.environ.get("RLM_OPENAI_API_KEY", "")
+        if not base_url or not api_key:
+            return {"success": False, "error": "RLM_OPENAI_BASE_URL and RLM_OPENAI_API_KEY must be set in ~/.hermes/.env"}
 
     # Use model from env if not specified
     if not model:

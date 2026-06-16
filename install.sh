@@ -128,6 +128,13 @@ if [ -f "$SCRIPT_DIR/plugin.yaml" ]; then
     echo -e "${GREEN}✓${NC} Plugin manifest installed"
 fi
 
+# Copy proxy.py for Ollama support
+if [ -f "$SCRIPT_DIR/proxy.py" ]; then
+    cp "$SCRIPT_DIR/proxy.py" "$PLUGIN_DIR/proxy.py"
+    cp "$SCRIPT_DIR/proxy.py" "$RLM_DIR/proxy.py"
+    echo -e "${GREEN}✓${NC} Ollama proxy installed"
+fi
+
 # Copy SKILL.md so the agent knows when and how to use rlm_complete
 if [ -f "$SCRIPT_DIR/skills/rlm-deep-analysis/SKILL.md" ]; then
     cp "$SCRIPT_DIR/skills/rlm-deep-analysis/SKILL.md" "$PLUGIN_DIR/SKILL.md"
@@ -141,7 +148,7 @@ echo ""
 echo -e "${CYAN}Restarting Hermes...${NC}"
 echo -e "${YELLOW}⚠${NC} Please restart Hermes manually to load the new plugin."
 echo "   If using systemd: sudo systemctl restart hermes-gateway-*.service"
-echo "   Or use your Hermes management tool (hermes-ctl, /restart command, etc.)"
+echo "   Or from within Hermes chat: send /restart command"
 
 # ─── Done ────────────────────────────────────────────────────────────────────
 echo ""

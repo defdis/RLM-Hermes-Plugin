@@ -227,3 +227,32 @@ python3 install.py
 ```
 
 Requires: Python 3.11+, git, any OpenAI-compatible API endpoint.
+
+### Ollama Support
+
+RLM plugin includes a built-in **OpenAI→Ollama proxy** (`proxy.py`) — zero dependencies, stdlib only. It translates `/v1/chat/completions` → `/api/chat` so RLM can use any Ollama instance (local or cloud).
+
+**Setup for Ollama:**
+
+```bash
+# In ~/.hermes/.env:
+RLM_BACKEND=ollama
+RLM_OLLAMA_URL=http://localhost:11434          # or your Ollama Cloud URL
+RLM_MODEL=qwen3.5:122b                          # or any model in ollama list
+# No API key needed — Ollama is auth-free
+```
+
+The proxy starts automatically on first `rlm_complete` call (port 11435, localhost). No manual steps.
+
+**How it works:**
+1. Plugin detects `RLM_BACKEND=ollama` or Ollama-style URL
+2. Starts `proxy.py` on `127.0.0.1:11435` (auto-managed, one instance per session)
+3. RLM calls `http://127.0.0.1:11435/v1/chat/completions` (OpenAI format)
+4. Proxy translates to Ollama `/api/chat` and forwards
+5. Response translated back to OpenAI format
+
+**Manual proxy (optional):**
+```bash
+python3 proxy.py --port 11435 --ollama-url http://your-ollama:11434
+# Then set RLM_OPENAI_BASE_URL=http://127.0.0.1:11435/v1
+```

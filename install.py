@@ -223,6 +223,13 @@ def main():
         shutil.copy(yaml_src, plugin_dir / "plugin.yaml")
         print(green("✓") + " Plugin manifest installed")
 
+    # Copy proxy.py for Ollama support
+    proxy_src = script_dir / "proxy.py"
+    if proxy_src.exists():
+        shutil.copy(proxy_src, plugin_dir / "proxy.py")
+        shutil.copy(proxy_src, rlm_dir / "proxy.py")
+        print(green("✓") + " Ollama proxy installed")
+
     # Copy SKILL.md so the agent knows when and how to use rlm_complete
     skill_src = script_dir / "skills" / "rlm-deep-analysis" / "SKILL.md"
     if skill_src.exists():
@@ -236,7 +243,7 @@ def main():
     print(cyan("Restarting Hermes..."))
     print(yellow("⚠") + " Please restart Hermes manually to load the new plugin.")
     print("   If using systemd: sudo systemctl restart hermes-gateway-*.service")
-    print("   Or use your Hermes management tool (hermes-ctl, /restart command, etc.)")
+    print("   Or from within Hermes chat: send /restart command")
 
     # ─── Done ────────────────────────────────────────────────────────────────
     print()
