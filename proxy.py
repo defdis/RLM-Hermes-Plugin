@@ -8,7 +8,7 @@ Usage:
 
   Defaults: port=11435, ollama-url=http://localhost:11434
 
-Zero dependencies — stdlib only. Works on any Python 3.11+.
+Zero dependencies — stdlib only. Works on any Python 3.9+.
 """
 
 import argparse
@@ -18,6 +18,7 @@ import sys
 import urllib.request
 import urllib.error
 from http.server import HTTPServer, BaseHTTPRequestHandler
+from typing import Optional, Tuple, Dict, Any
 
 
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
@@ -26,7 +27,7 @@ OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
 class ProxyHandler(BaseHTTPRequestHandler):
     """Translate OpenAI-format requests to Ollama native API."""
 
-    def _send_json(self, data: dict, status: int = 200):
+    def _send_json(self, data: Dict[str, Any], status: int = 200):
         body = json.dumps(data, ensure_ascii=False).encode()
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
@@ -34,7 +35,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def _forward(self, path: str, payload: dict | None = None) -> tuple[int, dict]:
+    def _forward(self, path: str, payload: Optional[Dict[str, Any]] = None) -> Tuple[int, Dict[str, Any]]:
         """Forward a request to Ollama and return (status, json_body)."""
         url = f"{OLLAMA_URL}{path}"
         req = urllib.request.Request(url, method="POST" if payload else "GET")

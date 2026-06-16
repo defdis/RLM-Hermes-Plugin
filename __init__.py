@@ -25,9 +25,9 @@ PROXY_URL = f"http://127.0.0.1:{PROXY_PORT}/v1"
 
 
 def _find_python() -> str | None:
-    """Find any Python 3.11+ on the system."""
+    """Find any Python 3.9+ on the system (for proxy)."""
     import shutil
-    for name in ["python3.12", "python3.11", "python3.13", "python3", "python"]:
+    for name in ["python3.12", "python3.11", "python3.10", "python3.9", "python3", "python"]:
         exe = shutil.which(name)
         if exe:
             try:
@@ -36,7 +36,7 @@ def _find_python() -> str | None:
                     text=True, stderr=subprocess.DEVNULL,
                 ).strip()
                 major, minor = map(int, ver.split("."))
-                if major >= 3 and minor >= 11:
+                if major >= 3 and minor >= 9:
                     return exe
             except Exception:
                 continue
