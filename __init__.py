@@ -25,9 +25,9 @@ PROXY_URL = f"http://127.0.0.1:{PROXY_PORT}/v1"
 
 
 def _find_python() -> str | None:
-    """Find any Python 3.9+ on the system (for proxy)."""
+    """Find any Python 3.9+ on the system (for proxy). Prefer newer versions."""
     import shutil
-    for name in ["python3.12", "python3.11", "python3.10", "python3.9", "python3", "python"]:
+    for name in ["python3.13", "python3.12", "python3.11", "python3.10", "python3.9", "python3", "python"]:
         exe = shutil.which(name)
         if exe:
             try:
@@ -79,8 +79,14 @@ def _is_ollama_backend() -> bool:
     base_url = os.environ.get("RLM_OPENAI_BASE_URL", "")
     if ":11434" in base_url and "/v1" not in base_url:
         return True
-    if os.environ.get("RLM_OLLAMA_URL"):
+    # RLM_OLLAMA_URL or OLLAMA_URL set explicitly
+    if os.environ.get("RLM_OLLAMA_URL") or os.environ.get("OLLAMA_URL"):
         return True
+    # ollama.com in any URL
+    for key in ("RLM_OLLAMA_URL", "OLLAMA_URL", "RLM_OPENAI_BASE_URL"):
+        val = os.environ.get(key, "")
+        if "ollama.com" in val:
+            return True
     return False
 
 
@@ -113,14 +119,19 @@ def _ensure_proxy() -> str | None:
     if not python:
         return None
 
-    ollama_url = os.environ.get("RLM_OLLAMA_URL", "http://localhost:11434")
+    ollama_url = os.environ.get("RLM_OLLAMA_URL") or os.environ.get("OLLAMA_URL", "http://localhost:11434")
+    ollama_api_key = os.environ.get("OLLAMA_API_KEY", "")
 
     # Start proxy as background subprocess
     try:
+        proxy_env = os.environ.copy()
+        if ollama_api_key:
+            proxy_env["OLLAMA_API_KEY"] = ollama_api_key
         _proxy_process = subprocess.Popen(
             [python, proxy_script, "--port", str(PROXY_PORT), "--ollama-url", ollama_url],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
+            env=proxy_env,
         )
         # Wait for proxy to be ready
         for _ in range(30):  # 3 seconds max
