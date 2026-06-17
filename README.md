@@ -1,5 +1,9 @@
 # 🧠 RLM Plugin for Hermes Agent
 
+<p align="center">
+  <img src="assets/banner.png" alt="RLM — Recursive Language Model" width="800">
+</p>
+
 [![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey)](.)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
@@ -37,22 +41,24 @@
 RLM works like a human researcher: open document → scan structure → find relevant sections → compare → synthesize. The model decides what to read, in what order, where to go back, what to cross-check.
 
 ```
-┌─────────────────────────────────────────────────┐
-│                    RLM FLOW                      │
-│                                                  │
-│  User: "Compare liability clauses in 3 contracts"│
-│                                                  │
-│  RLM:                                           │
-│    ├─ Read contract A → find "Responsibility"   │
-│    ├─ Read contract B → find "Liability"         │
-│    ├─ Read contract C → find "Penalties"         │
-│    ├─ Cross-reference all three                  │
-│    └─ Synthesize: "A has X, B has Y, C has Z"   │
-│                                                  │
-│  RAG would:                                      │
-│    └─ Search "liability" → return chunks → miss  │
-│       "penalties" section entirely               │
-└─────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│                                                          │
+│                      R L M   F L O W                     │
+│                                                          │
+│   User: "Compare liability clauses in 3 contracts"       │
+│                                                          │
+│   RLM:                                                   │
+│     ├─ Read contract A  →  find "Responsibility"         │
+│     ├─ Read contract B  →  find "Liability"               │
+│     ├─ Read contract C  →  find "Penalties"               │
+│     ├─ Cross-reference all three                         │
+│     └─ Synthesize: "A has X, B has Y, C has Z"           │
+│                                                          │
+│   RAG would:                                             │
+│     └─ Search "liability" → return chunks → miss the     │
+│        "penalties" section entirely                      │
+│                                                          │
+└──────────────────────────────────────────────────────────┘
 ```
 
 **Use for:**
