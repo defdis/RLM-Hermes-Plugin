@@ -43,19 +43,19 @@ RLM works like a human researcher: open document → scan structure → find rel
 ```
 ┌──────────────────────────────────────────────────────────┐
 │                                                          │
-│                      R L M   F L O W                     │
+│                     R L M   F L O W                      │
 │                                                          │
-│   User: "Compare liability clauses in 3 contracts"       │
+│   User: "Compare liability clauses in 3 contracts"      │
 │                                                          │
 │   RLM:                                                   │
-│     ├─ Read contract A  →  find "Responsibility"         │
-│     ├─ Read contract B  →  find "Liability"               │
-│     ├─ Read contract C  →  find "Penalties"               │
+│     ├─ Read contract A  ──▶  find "Responsibility"       │
+│     ├─ Read contract B  ──▶  find "Liability"            │
+│     ├─ Read contract C  ──▶  find "Penalties"            │
 │     ├─ Cross-reference all three                         │
-│     └─ Synthesize: "A has X, B has Y, C has Z"           │
+│     └─ Synthesize: "A has X, B has Y, C has Z"          │
 │                                                          │
 │   RAG would:                                             │
-│     └─ Search "liability" → return chunks → miss the     │
+│     └─ Search "liability" → return chunks → miss the    │
 │        "penalties" section entirely                      │
 │                                                          │
 └──────────────────────────────────────────────────────────┘
